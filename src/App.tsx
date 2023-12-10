@@ -18,10 +18,88 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import AES from 'crypto-js/aes'
+import CryptoJS from 'crypto-js'
 
 function App() {
+  const JsonFormatter = {
+    stringify: function (cipherParams) {
+      // create json object with ciphertext
+      const jsonObj = {
+        ct: cipherParams.ciphertext.toString(CryptoJS.enc.Base64),
+      }
+      // optionally add iv or salt
+      if (cipherParams.iv) {
+        jsonObj.iv = cipherParams.iv.toString()
+      }
+      if (cipherParams.salt) {
+        jsonObj.s = cipherParams.salt.toString()
+      }
+      // stringify json object
+      return JSON.stringify(jsonObj)
+    },
+    parse: function (jsonStr) {
+      // parse json string
+      const jsonObj = JSON.parse(jsonStr)
+      // extract ciphertext from json object, and create cipher params object
+      const cipherParams = CryptoJS.lib.CipherParams.create({
+        ciphertext: CryptoJS.enc.Base64.parse(jsonObj.ct),
+      })
+      // optionally extract iv or salt
+      if (jsonObj.iv) {
+        cipherParams.iv = CryptoJS.enc.Hex.parse(jsonObj.iv)
+      }
+      if (jsonObj.s) {
+        cipherParams.salt = CryptoJS.enc.Hex.parse(jsonObj.s)
+      }
+      return cipherParams
+    },
+  }
+
+  const encrypted = CryptoJS.AES.encrypt('Message', 'Secret Passphrase', {
+    format: JsonFormatter,
+  })
+  console.log(encrypted)
+
+  const decrypted = CryptoJS.AES.decrypt(encrypted, 'Secret Passphrase', {
+    format: JsonFormatter,
+  })
+  console.log(decrypted.toString())
+
   return (
     <div>
+      <Button
+        onClick={() => {
+          const encrypted = AES.encrypt(
+            'ana ba7abk ya bedonzy, yours Hala',
+            'meqdad',
+          )
+          console.log('[encrypted]', encrypted.toString())
+          console.log('[ciphertext]', encrypted.ciphertext.toString())
+          console.log('[salt]', encrypted.salt.toString())
+          console.log('[iv]', encrypted.iv.toString())
+          console.log('[key]', encrypted.key.toString())
+          const decrypted = AES.decrypt(
+            encrypted.toString(),
+            'meqdad',
+          )
+          console.log('[decrypted]', decrypted.toString(CryptoJS.enc.Utf8))
+        }}
+      >
+        encrypt
+      </Button>
+      <Button
+        onClick={() => {
+          console.log(
+            AES.decrypt(
+              'U2FsdGVkX19rQBFPpjnHconstwTd0aldHN66NRI3t/2FA+4cfSWbf+LSXbk81fJv1E5iLrnS2Hj2P54EjkVVdmVg==',
+              'meqdad',
+            ).toString(),
+          )
+        }}
+      >
+        decrypt
+      </Button>
       <div className="absolute right-5 top-5">
         <ModeToggle />
       </div>
@@ -57,7 +135,7 @@ function App() {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between">
-                <Button variant="outline">Cancel</Button>
+                <Button constiant="outline">Cancel</Button>
                 <Button>Deploy</Button>
               </CardFooter>
             </Card>
