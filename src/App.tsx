@@ -190,6 +190,7 @@ function App() {
   const [mode, setMode] = useState('CBC')
   const [authMode, setAuthMode] = useState('Passphrase')
   const [error_message, setErrorMessage] = useState('')
+  const [key_size, setKeySize] = useState('512')
   let error_message_id
 
   const handleEncrypt = (e) => {
@@ -282,6 +283,34 @@ function App() {
       console.log('decrypted', decrypted.toString(CryptoJS.enc.Utf8))
       setOutputText(decrypted.toString(CryptoJS.enc.Utf8))
     }
+  }
+
+  const handleGenerate = async (e) => {
+    e.preventDefault()
+    console.log('key_size', key_size);
+
+    const rsa = forge.pki.rsa
+    function generateKeyPair() {
+      return new Promise((resolve, reject) => {
+        rsa.generateKeyPair({ bits: parseInt(key_size), workers: 2 }, function (
+          err,
+          keypair,
+        ) {
+          if (err) reject(err)
+          resolve(keypair)
+        })
+      })
+    }
+    const keyPromise = generateKeyPair()
+    const keypair = await keyPromise
+    const privateKey = keypair.privateKey
+    const publicKey = keypair.publicKey
+    const my_pub_key = forge.pki.publicKeyToPem(publicKey)
+    const my_private_key = forge.pki.privateKeyToPem(privateKey)
+    console.log(my_pub_key)
+    console.log(my_private_key)
+    setOutputText(my_pub_key)
+    setInputText(my_private_key)
   }
 
   return (
@@ -441,28 +470,99 @@ function App() {
               </aside>
             </main>
           </TabsContent>
-          <TabsContent value="password">
-            <Card>
-              <CardHeader>
-                <CardTitle>Password</CardTitle>
-                <CardDescription>
-                  Change your password here. After saving, you'll be logged out.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="space-y-1">
-                  <Label htmlFor="current">Current password</Label>
-                  <Input id="current" type="password" />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="new">New password</Label>
-                  <Input id="new" type="password" />
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button>Save password</Button>
-              </CardFooter>
-            </Card>
+          <TabsContent value="gen">
+            <main className="grid h-full items-stretch gap-6 md:grid-cols-[1fr_200px]">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Generate Public/Private Key Pair</CardTitle>
+                  <CardDescription>
+                    Generate a public/private key pair using RSA.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <article className="flex flex-col space-y-4">
+                    <div className="grid h-full gap-6 lg:grid-cols-2">
+                      <div className="flex flex-col space-y-4">
+                        <div className="flex flex-1 flex-col space-y-2">
+                          <Label htmlFor="priv-key" className="text-lg">
+                            Private Key
+                          </Label>
+                          <Textarea
+                            value={inputText}
+                            onChange={(e) => setInputText(e.target.value)}
+                            id="priv-key"
+                            placeholder="Your private key will be displayed here"
+                            className="lg:min-h-[400px]"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-col space-y-4">
+                        <div className="flex flex-1 flex-col space-y-2">
+                          <Label htmlFor="pub-key" className="text-lg">
+                            Public Key
+                          </Label>
+                          <Textarea
+                            value={outputText}
+                            onChange={(e) => setOutputText(e.target.value)}
+                            id="pub-key"
+                            placeholder="Your public key will be displayed here"
+                            className=" lg:min-h-[400px]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  {/*                   <Button>Encrypt </Button>
+                  <Button>Decrypt</Button> */}
+                  <p className=" text-xl font-bold text-red-500">
+                    {error_message}
+                  </p>
+                </CardFooter>
+              </Card>
+              <aside className=" w-[350px] flex-col sm:flex md:order-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Settings</CardTitle>
+                    <CardDescription>Modify Selections</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex flex-col space-y-1.5">
+                      <Label htmlFor=" algorithm">Algorithm</Label>
+                      <Select value="rsa">
+                        <SelectTrigger id="algorithm">
+                          <SelectValue placeholder="Select Algorithm" />
+                        </SelectTrigger>
+                        <SelectContent position="popper">
+                          <SelectItem value="rsa">RSA</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex flex-col space-y-1.5">
+                      <Label htmlFor="key-size">Key Size</Label>
+                      <Select
+                        onValueChange={(e) => setKeySize(e)}
+                        value={key_size}
+                      >
+                        <SelectTrigger id="key-size">
+                          <SelectValue placeholder="Select Key Size" />
+                        </SelectTrigger>
+                        <SelectContent position="popper">
+                          <SelectItem value="512">512</SelectItem>
+                          <SelectItem value="1024">1024</SelectItem>
+                          <SelectItem value="2048">2048</SelectItem>
+                          <SelectItem value="4096">4096</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex justify-between">
+                    <Button onClick={handleGenerate}>Generate</Button>
+                  </CardFooter>
+                </Card>
+              </aside>
+            </main>
           </TabsContent>
         </Tabs>
       </div>
