@@ -287,18 +287,18 @@ function App() {
 
   const handleGenerate = async (e) => {
     e.preventDefault()
-    console.log('key_size', key_size);
+    console.log('key_size', key_size)
 
     const rsa = forge.pki.rsa
     function generateKeyPair() {
       return new Promise((resolve, reject) => {
-        rsa.generateKeyPair({ bits: parseInt(key_size), workers: 2 }, function (
-          err,
-          keypair,
-        ) {
-          if (err) reject(err)
-          resolve(keypair)
-        })
+        rsa.generateKeyPair(
+          { bits: parseInt(key_size), workers: 2 },
+          function (err, keypair) {
+            if (err) reject(err)
+            resolve(keypair)
+          },
+        )
       })
     }
     const keyPromise = generateKeyPair()
@@ -311,6 +311,14 @@ function App() {
     console.log(my_private_key)
     setOutputText(my_pub_key)
     setInputText(my_private_key)
+  }
+
+  const handleClear = (e) => {
+    e.preventDefault()
+    setInputText('')
+    setOutputText('')
+    setKeyText('')
+    setIvText('')
   }
 
   return (
@@ -465,6 +473,9 @@ function App() {
                   <CardFooter className="flex justify-between">
                     <Button onClick={handleEncrypt}>Encrypt</Button>
                     <Button onClick={handleDecrypt}>Decrypt</Button>
+                    <Button variant="destructive" onClick={handleClear}>
+                      Clear
+                    </Button>
                   </CardFooter>
                 </Card>
               </aside>
@@ -559,6 +570,100 @@ function App() {
                   </CardContent>
                   <CardFooter className="flex justify-between">
                     <Button onClick={handleGenerate}>Generate</Button>
+                    <Button variant="destructive" onClick={handleClear}>
+                      Clear
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </aside>
+            </main>
+          </TabsContent>
+
+          <TabsContent value="sv">
+            <main className="grid h-full items-stretch gap-6 md:grid-cols-[1fr_200px]">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sign & Verify</CardTitle>
+                  <CardDescription>
+                    Sign and verify a message using RSA.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <article className="flex flex-col space-y-4">
+                    <div className="grid h-full gap-6 lg:grid-cols-2">
+                      <div className="flex flex-col space-y-4">
+                        <div className="flex flex-1 flex-col space-y-2">
+                          <Label htmlFor="input" className="text-lg">
+                            Input
+                          </Label>
+                          <Textarea
+                            value={inputText}
+                            onChange={(e) => setInputText(e.target.value)}
+                            id="input"
+                            placeholder="Text to sign or verify"
+                            className="flex-1 lg:min-h-[200px]"
+                          />
+                        </div>
+                        <div className="flex flex-col space-y-2">
+                          <Label htmlFor="key">Private Key (Hex)</Label>
+                          <Textarea
+                            id="key"
+                            value={keyText}
+                            onChange={(e) => setKeyText(e.target.value)}
+                            placeholder="Enter your private key here."
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-col space-y-4">
+                        <div className="flex flex-1 flex-col space-y-2">
+                          <Label htmlFor="output" className="text-lg">
+                            Output
+                          </Label>
+                          <Textarea
+                            value={outputText}
+                            onChange={(e) => setOutputText(e.target.value)}
+                            id="output"
+                            placeholder="Output will be displayed here"
+                            className="flex-1 lg:min-h-[200px]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  {/*                   <Button>Encrypt </Button>
+                  <Button>Decrypt</Button> */}
+                  <p className=" text-xl font-bold text-red-500">
+                    {error_message}
+                  </p>
+                </CardFooter>
+              </Card>
+              <aside className=" w-[350px] flex-col sm:flex md:order-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Settings</CardTitle>
+                    <CardDescription>Modify Selections</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex flex-col space-y-1.5">
+                      <Label htmlFor="algorithm">Algorithm</Label>
+                      <Select value="rsa">
+                        <SelectTrigger id="algorithm">
+                          <SelectValue placeholder="Select Algorithm" />
+                        </SelectTrigger>
+                        <SelectContent position="popper">
+                          <SelectItem value="rsa">RSA</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex justify-between">
+                    <Button>Sign</Button>
+                    <Button>Verify</Button>
+                    <Button variant="destructive" onClick={handleClear}>
+                      Clear
+                    </Button>
                   </CardFooter>
                 </Card>
               </aside>
