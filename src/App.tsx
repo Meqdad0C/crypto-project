@@ -189,6 +189,8 @@ function App() {
   const [algorithm, setAlgorithm] = useState('aes')
   const [mode, setMode] = useState('CBC')
   const [authMode, setAuthMode] = useState('Passphrase')
+  const [error_message, setErrorMessage] = useState('')
+  let error_message_id
 
   const handleEncrypt = (e) => {
     console.log('input', inputText)
@@ -199,9 +201,6 @@ function App() {
 
     e.preventDefault()
     if (!inputText) return
-    const iv = ivText ? CryptoJS.enc.Hex.parse(ivText) : undefined
-    console.log('iv', iv?.toString())
-
     if (authMode === 'Passphrase') {
       const encrypted = AES.encrypt(inputText, keyText, {
         mode: modeToTextMap[mode],
@@ -211,16 +210,38 @@ function App() {
       console.log('key', encrypted.key.toString())
       setOutputText(encrypted.toString())
     } else {
+      if (
+        keyText.length !== 32 &&
+        keyText.length !== 48 &&
+        keyText.length !== 64
+      ) {
+        clearTimeout(error_message_id)
+        setErrorMessage(
+          'Key length must be between 16, 24 or 32 bytes (32, 48 or 64 hex characters)',
+        )
+        error_message_id = setTimeout(() => {
+          setErrorMessage('')
+        }, 3000)
+        return
+      }
+      if (ivText.length !== 32) {
+        clearTimeout(error_message_id)
+        setErrorMessage('IV length must be 16 bytes (32 hex characters)')
+        error_message_id = setTimeout(() => {
+          setErrorMessage('')
+        }, 3000)
+        return
+      }
       const encrypted = AES.encrypt(
         inputText,
         CryptoJS.enc.Hex.parse(keyText),
         {
-          iv,
+          iv: CryptoJS.enc.Hex.parse(ivText),
           mode: modeToTextMap[mode],
         },
       )
       console.log('encrypted', encrypted.toString())
-      console.log('iv', encrypted.iv.toString())
+      // console.log('iv', encrypted.iv.toString())
       console.log('key', encrypted.key.toString())
       setOutputText(encrypted.toString())
     }
@@ -229,9 +250,6 @@ function App() {
   const handleDecrypt = (e) => {
     e.preventDefault()
     if (!inputText) return
-    const iv = ivText ? CryptoJS.enc.Hex.parse(ivText) : undefined
-    console.log('iv', iv?.toString())
-
     if (authMode === 'Passphrase') {
       const decrypted = AES.decrypt(inputText, keyText, {
         mode: modeToTextMap[mode],
@@ -239,11 +257,25 @@ function App() {
       console.log('decrypted', decrypted.toString(CryptoJS.enc.Utf8))
       setOutputText(decrypted.toString(CryptoJS.enc.Utf8))
     } else {
+      if (
+        keyText.length !== 32 &&
+        keyText.length !== 48 &&
+        keyText.length !== 64
+      ) {
+        clearTimeout(error_message_id)
+        setErrorMessage(
+          'Key length must be between 16, 24 or 32 bytes (32, 48 or 64 hex characters)',
+        )
+        error_message_id = setTimeout(() => {
+          setErrorMessage('')
+        }, 3000)
+        return
+      }
       const decrypted = AES.decrypt(
         inputText,
         CryptoJS.enc.Hex.parse(keyText),
         {
-          iv,
+          iv: CryptoJS.enc.Hex.parse(ivText),
           mode: modeToTextMap[mode],
         },
       )
@@ -298,30 +330,30 @@ function App() {
                         </div>
                         <div className="flex flex-col space-y-2">
                           {authMode === 'Passphrase' ? (
-                            <Label htmlFor="passphrase">Passphrase</Label>
+                            <Label htmlFor="passphrase">Passphrase (Hex)</Label>
                           ) : (
-                            <Label htmlFor="key">Key</Label>
+                            <Label htmlFor="key">Key (Hex)</Label>
                           )}
                           <Textarea
                             id="key"
                             value={keyText}
                             onChange={(e) => setKeyText(e.target.value)}
-                            placeholder="Enter your passphrase or key here. Leave it empty to generate a random key."
+                            placeholder="Enter your passphrase or key here."
                           />
                         </div>
 
                         <div
                           className={clsx('flex flex-col space-y-2', {
                             'pointer-events-none  opacity-0':
-                              authMode === 'Passphrase',
+                              authMode === 'Passphrase' || mode === 'ECB',
                           })}
                         >
-                          <Label htmlFor="iv">IV</Label>
+                          <Label htmlFor="iv">IV (Hex)</Label>
                           <Textarea
                             id="iv"
                             value={ivText}
                             onChange={(e) => setIvText(e.target.value)}
-                            placeholder="Enter your IV here. Leave it empty to generate a random IV. If needed."
+                            placeholder="Enter your IV here."
                           />
                         </div>
                       </div>
@@ -345,6 +377,9 @@ function App() {
                 <CardFooter className="flex justify-between">
                   {/*                   <Button>Encrypt </Button>
                   <Button>Decrypt</Button> */}
+                  <p className=" text-xl font-bold text-red-500">
+                    {error_message}
+                  </p>
                 </CardFooter>
               </Card>
               <aside className=" w-[350px] flex-col sm:flex md:order-2">
