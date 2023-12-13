@@ -339,7 +339,7 @@ function App() {
       </h1>
       <div className="container h-full py-6">
         <Tabs defaultValue="ed">
-          <TabsList className="grid w-full grid-cols-3 overflow-hidden">
+          <TabsList className="grid w-full grid-cols-4 overflow-hidden">
             <TabsTrigger value="ed">Encrypt & Decrypt</TabsTrigger>
             <TabsTrigger value="gen">
               Generate Public/Private Key Pair
@@ -347,6 +347,7 @@ function App() {
             <TabsTrigger value="sv">
               Sign & Verify Or Encrypt & Decrypt
             </TabsTrigger>
+            <TabsTrigger value="sha">SHA512</TabsTrigger>
           </TabsList>
 
           <TabsContent
@@ -641,7 +642,7 @@ function App() {
                       </div>
                       <div className="flex flex-col space-y-2">
                         <Label htmlFor="key" className="text-lg">
-                          {rsaMode === 'sv' ? 'Text to Sign' : 'Input'}
+                          {rsaMode === 'sv' ? 'Text to Sign Or Verify' : 'Input'}
                         </Label>
                         <Textarea
                           id="key"
@@ -726,7 +727,9 @@ function App() {
                         <SelectValue placeholder="Select Algorithm" />
                       </SelectTrigger>
                       <SelectContent position="popper">
-                        <SelectItem value="rsa">RSASSA-PSS</SelectItem>
+                        <SelectItem value="rsa">
+                          {rsaMode === 'sv' ? 'RSASSA-PSS' : 'RSA'}
+                          </SelectItem>
                       </SelectContent>
                     </Select>
                     <div className="flex flex-col space-y-1.5">
@@ -770,6 +773,118 @@ function App() {
               </Card>
             </aside>
           </TabsContent>
+
+          <TabsContent
+            value="sha"
+            className="grid h-full items-stretch gap-6 md:grid-cols-[1fr_350px]"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>SHA512</CardTitle>
+                <CardDescription>
+                  Enter the text to generate SHA512 hash.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <article className="flex flex-col space-y-4">
+                  <div className="grid h-full gap-6 lg:grid-cols-2">
+                    <div className="flex flex-col space-y-4">
+                      <div className="flex flex-1 flex-col space-y-2">
+                        <Label htmlFor="input" className="text-lg">
+                          Input
+                        </Label>
+                        <Textarea
+                          value={inputText}
+                          onChange={(e) => setInputText(e.target.value)}
+                          id="input"
+                          placeholder="Text to generate SHA512 hash"
+                          className="flex-1 lg:min-h-[200px]"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex flex-col space-y-4">
+                      <div className="flex flex-1 flex-col space-y-2">
+                        <Label htmlFor="output" className="text-lg">
+                          Output
+                        </Label>
+                        <Textarea
+                          value={outputText}
+                          onChange={(e) => setOutputText(e.target.value)}
+                          id="output"
+                          placeholder="Output will be displayed here"
+                          className="flex-1 lg:min-h-[200px]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                {/*                   <Button>Encrypt </Button>
+                  <Button>Decrypt</Button> */}
+                <p className=" text-xl font-bold text-red-500">
+                  {error_message}
+                </p>
+              </CardFooter>
+            </Card>
+            <aside className=" w-[350px] flex-col gap-2 sm:flex md:order-2">
+              <div className="grid w-full max-w-sm cursor-pointer items-center gap-1.5 rounded-lg border-2 border-dashed p-2 hover:border-gray-500">
+                <Label htmlFor="file" className="text-lg">
+                  Click to select file or start Typing away
+                </Label>
+                <Input
+                  id="file"
+                  type="file"
+                  onChange={(e) => {
+                    const file = e.target.files[0]
+                    const reader = new FileReader()
+                    reader.onload = function (e) {
+                      const text = e.target?.result
+                      setInputText(text as string)
+                    }
+                    reader.readAsText(file)
+                  }
+                  }
+                />
+              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Settings</CardTitle>
+                  <CardDescription>Modify Selections</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="algorithm">Algorithm</Label>
+                    <Select value="sha512">
+                      <SelectTrigger id="algorithm">
+                        <SelectValue placeholder="Select Algorithm" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        <SelectItem value="sha512">SHA512</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      if (!inputText) return
+                      const hash = CryptoJS.SHA512(inputText)
+                      console.log('hash', hash.toString())
+                      setOutputText(hash.toString())
+                    }}
+                  >
+                    Generate
+                  </Button>
+                  <Button variant="destructive" onClick={handleClear}>
+                    Clear
+                  </Button>
+                </CardFooter>
+              </Card>
+            </aside>
+          </TabsContent>
+          
         </Tabs>
       </div>
     </>
