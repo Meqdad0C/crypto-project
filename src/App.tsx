@@ -358,7 +358,7 @@ function App() {
             value="ed"
             className="grid h-full items-stretch gap-6 md:grid-cols-[1fr_350px]"
           >
-            <Card>
+            <Card className="flex flex-col space-y-4">
               <CardHeader>
                 <CardTitle>Encrypt & Decrypt</CardTitle>
                 <CardDescription>
@@ -528,7 +528,7 @@ function App() {
                   Generate a public/private key pair using RSA.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent>
                 <article className="flex flex-col space-y-4">
                   <div className="grid h-full gap-6 lg:grid-cols-2">
                     <div className="flex flex-col space-y-4">
