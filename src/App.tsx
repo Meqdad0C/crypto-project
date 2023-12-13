@@ -339,15 +339,19 @@ function App() {
       </h1>
       <div className="container h-full py-6">
         <Tabs defaultValue="ed">
-          <TabsList className="grid w-full grid-cols-4 overflow-hidden">
-            <TabsTrigger value="ed">Encrypt & Decrypt</TabsTrigger>
-            <TabsTrigger value="gen">
+          <TabsList className="grid w-full grid-cols-4 ">
+            <TabsTrigger value="ed" className="overflow-hidden">
+              Encrypt & Decrypt
+            </TabsTrigger>
+            <TabsTrigger className="overflow-hidden" value="gen">
               Generate Public/Private Key Pair
             </TabsTrigger>
-            <TabsTrigger value="sv">
+            <TabsTrigger className="overflow-hidden" value="sv">
               Sign & Verify Or Encrypt & Decrypt
             </TabsTrigger>
-            <TabsTrigger value="sha">SHA512</TabsTrigger>
+            <TabsTrigger className="overflow-hidden" value="sha">
+              SHA512
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent
@@ -642,7 +646,9 @@ function App() {
                       </div>
                       <div className="flex flex-col space-y-2">
                         <Label htmlFor="key" className="text-lg">
-                          {rsaMode === 'sv' ? 'Text to Sign Or Verify' : 'Input'}
+                          {rsaMode === 'sv'
+                            ? 'Text to Sign Or Verify'
+                            : 'Input'}
                         </Label>
                         <Textarea
                           id="key"
@@ -729,7 +735,7 @@ function App() {
                       <SelectContent position="popper">
                         <SelectItem value="rsa">
                           {rsaMode === 'sv' ? 'RSASSA-PSS' : 'RSA'}
-                          </SelectItem>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <div className="flex flex-col space-y-1.5">
@@ -843,8 +849,7 @@ function App() {
                       setInputText(text as string)
                     }
                     reader.readAsText(file)
-                  }
-                  }
+                  }}
                 />
               </div>
               <Card>
@@ -884,7 +889,6 @@ function App() {
               </Card>
             </aside>
           </TabsContent>
-          
         </Tabs>
       </div>
     </>
