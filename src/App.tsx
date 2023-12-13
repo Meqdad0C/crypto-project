@@ -191,6 +191,7 @@ function App() {
   const [authMode, setAuthMode] = useState('Passphrase')
   const [error_message, setErrorMessage] = useState('')
   const [key_size, setKeySize] = useState('512')
+  const [verifyAlgo, setVerifyAlgo] = useState('rsa')
   let error_message_id
 
   const handleEncrypt = (e) => {
@@ -313,6 +314,51 @@ function App() {
     setInputText(my_private_key)
   }
 
+  const handleSign = (e) => {
+    e.preventDefault()
+    const pk = inputText
+    const pubk = outputText
+    const privateKey = forge.pki.privateKeyFromPem(pk)
+    const publicKey = forge.pki.publicKeyFromPem(pubk)
+    const md = forge.md.sha1.create()
+    md.update(keyText, 'utf8')
+    const pss = forge.pss.create({
+      md: forge.md.sha1.create(),
+      mgf: forge.mgf.mgf1.create(forge.md.sha1.create()),
+      saltLength: 20,
+    })
+
+    console.log('text', keyText)
+
+    const signature = privateKey.sign(md, pss)
+    console.log('signature ', forge.util.encode64(signature))
+
+    console.log('is verified', publicKey.verify(md.digest().bytes(), signature, pss))
+
+    setIvText(forge.util.encode64(signature))
+  }
+
+  const handleVerify = (e) => {
+    e.preventDefault()
+    const publicKey = forge.pki.publicKeyFromPem(outputText)
+    const md = forge.md.sha1.create()
+    md.update(keyText, 'utf8')
+    const pss = forge.pss.create({
+      md: forge.md.sha1.create(),
+      mgf: forge.mgf.mgf1.create(forge.md.sha1.create()),
+      saltLength: 20,
+    })
+    const signature = forge.util.decode64(ivText)
+    const verified = publicKey.verify(md.digest().bytes(), signature, pss)
+    console.log('is verified', verified)
+
+    setErrorMessage(verified ? 'Verified' : 'Invalid Signature')
+    clearTimeout(error_message_id)
+    error_message_id = setTimeout(() => {
+      setErrorMessage('')
+    }, 5000)
+  }
+
   const handleClear = (e) => {
     e.preventDefault()
     setInputText('')
@@ -369,7 +415,7 @@ function App() {
                       </div>
                       <div className="flex flex-col space-y-2">
                         {authMode === 'Passphrase' ? (
-                          <Label htmlFor="passphrase">Passphrase (Hex)</Label>
+                          <Label htmlFor="passphrase">Passphrase</Label>
                         ) : (
                           <Label htmlFor="key">Key (Hex)</Label>
                         )}
@@ -600,36 +646,45 @@ function App() {
                     <div className="flex flex-col space-y-4">
                       <div className="flex flex-1 flex-col space-y-2">
                         <Label htmlFor="input" className="text-lg">
-                          Input
+                          Private Key
                         </Label>
                         <Textarea
                           value={inputText}
                           onChange={(e) => setInputText(e.target.value)}
                           id="input"
-                          placeholder="Text to sign or verify"
+                          placeholder="Enter your private key here."
                           className="flex-1 lg:min-h-[200px]"
                         />
                       </div>
                       <div className="flex flex-col space-y-2">
-                        <Label htmlFor="key">Private Key (Hex)</Label>
+                        <Label htmlFor="key">Text to Sign</Label>
                         <Textarea
                           id="key"
                           value={keyText}
                           onChange={(e) => setKeyText(e.target.value)}
-                          placeholder="Enter your private key here."
+                          placeholder="Enter your text to sign here."
+                          className="flex-1 lg:min-h-[200px]"
                         />
                       </div>
                     </div>
                     <div className="flex flex-col space-y-4">
                       <div className="flex flex-1 flex-col space-y-2">
                         <Label htmlFor="output" className="text-lg">
-                          Output
+                          Public Key
                         </Label>
                         <Textarea
                           value={outputText}
                           onChange={(e) => setOutputText(e.target.value)}
                           id="output"
-                          placeholder="Output will be displayed here"
+                          placeholder="Enter your public key here."
+                          className="flex-1 lg:min-h-[200px]"
+                        />
+                        <Label htmlFor="iv">Signature</Label>
+                        <Textarea
+                          id="iv"
+                          value={ivText}
+                          onChange={(e) => setIvText(e.target.value)}
+                          placeholder="Signature will be displayed here."
                           className="flex-1 lg:min-h-[200px]"
                         />
                       </div>
@@ -640,7 +695,14 @@ function App() {
               <CardFooter className="flex justify-between">
                 {/*                   <Button>Encrypt </Button>
                   <Button>Decrypt</Button> */}
-                <p className=" text-xl font-bold text-red-500">
+                <p
+                  className={clsx(
+                    ' text-xl font-bold',
+                    error_message.startsWith('V')
+                      ? 'text-green-500'
+                      : 'text-red-500',
+                  )}
+                >
                   {error_message}
                 </p>
               </CardFooter>
@@ -659,14 +721,14 @@ function App() {
                         <SelectValue placeholder="Select Algorithm" />
                       </SelectTrigger>
                       <SelectContent position="popper">
-                        <SelectItem value="rsa">RSA</SelectItem>
+                        <SelectItem value="rsa">RSASSA-PSS</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                  <Button>Sign</Button>
-                  <Button>Verify</Button>
+                  <Button onClick={handleSign}>Sign</Button>
+                  <Button onClick={handleVerify}>Verify</Button>
                   <Button variant="destructive" onClick={handleClear}>
                     Clear
                   </Button>
