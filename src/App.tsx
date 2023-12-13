@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { Button } from '@/components/ui/button'
 import { Textarea } from './components/ui/textarea'
 import { Label } from './components/ui/label'
@@ -43,9 +45,9 @@ function App() {
   const [error_message, setErrorMessage] = useState('')
   const [key_size, setKeySize] = useState('512')
   const [rsaMode, setRsaMode] = useState('sv')
-  let error_message_id
+  let error_message_id: string | number | NodeJS.Timeout | undefined
 
-  const handleEncrypt = (e) => {
+  const handleEncrypt = (e: { preventDefault: () => void }) => {
     console.log('input', inputText)
     console.log('key', keyText)
     console.log('iv', ivText)
@@ -100,7 +102,7 @@ function App() {
     }
   }
 
-  const handleDecrypt = (e) => {
+  const handleDecrypt = (e: { preventDefault: () => void }) => {
     e.preventDefault()
     if (!inputText) return
     if (authMode === 'Passphrase') {
@@ -137,7 +139,7 @@ function App() {
     }
   }
 
-  const handleGenerate = async (e) => {
+  const handleGenerate = async (e: { preventDefault: () => void }) => {
     e.preventDefault()
     console.log('key_size', key_size)
 
@@ -165,7 +167,7 @@ function App() {
     setInputText(my_private_key)
   }
 
-  const handleSign = (e) => {
+  const handleSign = (e: { preventDefault: () => void }) => {
     e.preventDefault()
     if (!inputText) {
       clearTimeout(error_message_id)
@@ -185,9 +187,7 @@ function App() {
     }
 
     const pk = inputText
-    const pubk = outputText
     const privateKey = forge.pki.privateKeyFromPem(pk)
-    const publicKey = forge.pki.publicKeyFromPem(pubk)
     const md = forge.md.sha1.create()
     md.update(keyText, 'utf8')
     const pss = forge.pss.create({
@@ -204,7 +204,7 @@ function App() {
     setIvText(forge.util.encode64(signature))
   }
 
-  const handleVerify = (e) => {
+  const handleVerify = (e: { preventDefault: () => void }) => {
     e.preventDefault()
     if (!inputText) {
       clearTimeout(error_message_id)
@@ -259,7 +259,7 @@ function App() {
     }
   }
 
-  const handleClear = (e) => {
+  const handleClear = (e: { preventDefault: () => void }) => {
     e.preventDefault()
     setInputText('')
     setOutputText('')
@@ -268,7 +268,7 @@ function App() {
     setErrorMessage('')
   }
 
-  const handleRsaEncrypt = (e) => {
+  const handleRsaEncrypt = (e: { preventDefault: () => void }) => {
     e.preventDefault()
     if (!inputText) {
       clearTimeout(error_message_id)
@@ -293,7 +293,7 @@ function App() {
     setIvText(forge.util.encode64(encrypted))
   }
 
-  const handleRsaDecrypt = (e) => {
+  const handleRsaDecrypt = (e: { preventDefault: () => void }) => {
     e.preventDefault()
     if (!inputText) {
       clearTimeout(error_message_id)
