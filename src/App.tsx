@@ -466,7 +466,7 @@ function App() {
                     <Label htmlFor="auth">Encrypt with</Label>
                     <RadioGroup
                       id="auth"
-                      defaultValue="Passphrase"
+                      defaultValue={authMode}
                       onValueChange={(e) => setAuthMode(e)}
                     >
                       <div className="flex items-center space-x-2">
