@@ -316,6 +316,23 @@ function App() {
 
   const handleSign = (e) => {
     e.preventDefault()
+    if (!inputText) {
+      clearTimeout(error_message_id)
+      setErrorMessage('Please enter private key.')
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 3000)
+      return
+    }    
+    if (!keyText) {
+      clearTimeout(error_message_id)
+      setErrorMessage('Please enter text to sign.')
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 3000)
+      return
+    }
+    
     const pk = inputText
     const pubk = outputText
     const privateKey = forge.pki.privateKeyFromPem(pk)
@@ -333,13 +350,36 @@ function App() {
     const signature = privateKey.sign(md, pss)
     console.log('signature ', forge.util.encode64(signature))
 
-    console.log('is verified', publicKey.verify(md.digest().bytes(), signature, pss))
-
     setIvText(forge.util.encode64(signature))
   }
 
   const handleVerify = (e) => {
     e.preventDefault()
+    if (!inputText) {
+      clearTimeout(error_message_id)
+      setErrorMessage('Please enter public key.')
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 3000)
+      return
+    }
+    if (!keyText) {
+      clearTimeout(error_message_id)
+      setErrorMessage('Please enter text to verify.')
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 3000)
+      return
+    }
+    if (!ivText) {
+      clearTimeout(error_message_id)
+      setErrorMessage('Please enter signature.')
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 3000)
+      return
+    }
+
     const publicKey = forge.pki.publicKeyFromPem(outputText)
     const md = forge.md.sha1.create()
     md.update(keyText, 'utf8')
@@ -349,14 +389,23 @@ function App() {
       saltLength: 20,
     })
     const signature = forge.util.decode64(ivText)
-    const verified = publicKey.verify(md.digest().bytes(), signature, pss)
-    console.log('is verified', verified)
+    try {
+      const verified = publicKey.verify(md.digest().bytes(), signature, pss)
+      console.log('is verified', verified)
 
-    setErrorMessage(verified ? 'Verified' : 'Invalid Signature')
-    clearTimeout(error_message_id)
-    error_message_id = setTimeout(() => {
-      setErrorMessage('')
-    }, 5000)
+      setErrorMessage(verified ? 'Verified' : 'Invalid Signature')
+      clearTimeout(error_message_id)
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 5000)
+    } catch (err) {
+      console.log(err)
+      setErrorMessage('Invalid Signature')
+      clearTimeout(error_message_id)
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 5000)
+    }
   }
 
   const handleClear = (e) => {
@@ -365,6 +414,7 @@ function App() {
     setOutputText('')
     setKeyText('')
     setIvText('')
+    setErrorMessage('')
   }
 
   return (
