@@ -191,7 +191,7 @@ function App() {
   const [authMode, setAuthMode] = useState('Passphrase')
   const [error_message, setErrorMessage] = useState('')
   const [key_size, setKeySize] = useState('512')
-  const [verifyAlgo, setVerifyAlgo] = useState('rsa')
+  const [rsaMode, setRsaMode] = useState('sv')
   let error_message_id
 
   const handleEncrypt = (e) => {
@@ -323,7 +323,7 @@ function App() {
         setErrorMessage('')
       }, 3000)
       return
-    }    
+    }
     if (!keyText) {
       clearTimeout(error_message_id)
       setErrorMessage('Please enter text to sign.')
@@ -332,7 +332,7 @@ function App() {
       }, 3000)
       return
     }
-    
+
     const pk = inputText
     const pubk = outputText
     const privateKey = forge.pki.privateKeyFromPem(pk)
@@ -417,6 +417,66 @@ function App() {
     setErrorMessage('')
   }
 
+  const handleRsaEncrypt = (e) => {
+    e.preventDefault()
+    if (!inputText) {
+      clearTimeout(error_message_id)
+      setErrorMessage('Please enter public key.')
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 3000)
+      return
+    }
+    if (!keyText) {
+      clearTimeout(error_message_id)
+      setErrorMessage('Please enter text to encrypt.')
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 3000)
+      return
+    }
+
+    const publicKey = forge.pki.publicKeyFromPem(outputText)
+    const encrypted = publicKey.encrypt(keyText)
+    console.log('encrypted', forge.util.encode64(encrypted))
+    setIvText(forge.util.encode64(encrypted))
+  }
+
+  const handleRsaDecrypt = (e) => {
+    e.preventDefault()
+    if (!inputText) {
+      clearTimeout(error_message_id)
+      setErrorMessage('Please enter private key.')
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 3000)
+      return
+    }
+    if (!keyText) {
+      clearTimeout(error_message_id)
+      setErrorMessage('Please enter text to decrypt.')
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 3000)
+      return
+    }
+
+    const privateKey = forge.pki.privateKeyFromPem(inputText)
+    console.log('input', keyText)
+    try {
+      const decrypted = privateKey.decrypt(forge.util.decode64(keyText))
+      console.log('decrypted', decrypted)
+      setIvText(decrypted)
+    } catch (err) {
+      console.log(err)
+      setErrorMessage('Invalid Input')
+      clearTimeout(error_message_id)
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 5000)
+    }
+  }
+
   return (
     <>
       <ButtonWrapper children={undefined} />
@@ -428,12 +488,14 @@ function App() {
       </h1>
       <div className="container h-full py-6">
         <Tabs defaultValue="ed">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-3 overflow-hidden">
             <TabsTrigger value="ed">Encrypt & Decrypt</TabsTrigger>
             <TabsTrigger value="gen">
               Generate Public/Private Key Pair
             </TabsTrigger>
-            <TabsTrigger value="sv">Sign & Verify</TabsTrigger>
+            <TabsTrigger value="sv">
+              Sign & Verify Or Encrypt & Decrypt
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent
@@ -707,7 +769,9 @@ function App() {
                         />
                       </div>
                       <div className="flex flex-col space-y-2">
-                        <Label htmlFor="key">Text to Sign</Label>
+                        <Label htmlFor="key" className="text-lg">
+                          {rsaMode === 'sv' ? 'Text to Sign' : 'Input'}
+                        </Label>
                         <Textarea
                           id="key"
                           value={keyText}
@@ -729,7 +793,9 @@ function App() {
                           placeholder="Enter your public key here."
                           className="flex-1 lg:min-h-[200px]"
                         />
-                        <Label htmlFor="iv">Signature</Label>
+                        <Label htmlFor="iv" className="text-lg">
+                          {rsaMode === 'sv' ? 'Signature' : 'Output'}
+                        </Label>
                         <Textarea
                           id="iv"
                           value={ivText}
@@ -774,11 +840,40 @@ function App() {
                         <SelectItem value="rsa">RSASSA-PSS</SelectItem>
                       </SelectContent>
                     </Select>
+                    <div className="flex flex-col space-y-1.5">
+                      <Label htmlFor="mode">Select functionality</Label>
+                      <RadioGroup
+                        id="mode"
+                        defaultValue={rsaMode}
+                        onValueChange={(e) => setRsaMode(e)}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="sv" id="option-one" />
+                          <Label htmlFor="option-one">Sign & Verify</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="ed" id="option-two" />
+                          <Label htmlFor="option-two">Encrypt & Decrypt</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                  <Button onClick={handleSign}>Sign</Button>
-                  <Button onClick={handleVerify}>Verify</Button>
+                  <div className="flex space-x-2">
+                    <Button
+                      onClick={rsaMode === 'sv' ? handleSign : handleRsaEncrypt}
+                    >
+                      {rsaMode === 'sv' ? 'Sign' : 'Encrypt'}
+                    </Button>
+                    <Button
+                      onClick={
+                        rsaMode === 'sv' ? handleVerify : handleRsaDecrypt
+                      }
+                    >
+                      {rsaMode === 'sv' ? 'Verify' : 'Decrypt'}
+                    </Button>
+                  </div>
                   <Button variant="destructive" onClick={handleClear}>
                     Clear
                   </Button>
