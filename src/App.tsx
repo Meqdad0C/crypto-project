@@ -339,335 +339,340 @@ function App() {
             </TabsTrigger>
             <TabsTrigger value="sv">Sign & Verify</TabsTrigger>
           </TabsList>
-          <TabsContent value="ed">
-            <main className="grid h-full items-stretch gap-6 md:grid-cols-[1fr_200px]">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Encrypt & Decrypt</CardTitle>
-                  <CardDescription>
-                    Select the algorithm and enter the text to encrypt or
-                    decrypt.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <article className="flex flex-col space-y-4">
-                    <div className="grid h-full gap-6 lg:grid-cols-2">
-                      <div className="flex flex-col space-y-4">
-                        <div className="flex flex-1 flex-col space-y-2">
-                          <Label htmlFor="input" className="text-lg">
-                            Input
-                          </Label>
-                          <Textarea
-                            value={inputText}
-                            onChange={(e) => setInputText(e.target.value)}
-                            id="input"
-                            placeholder="Text to encrypt or decrypt"
-                            className="flex-1 lg:min-h-[200px]"
-                          />
-                        </div>
-                        <div className="flex flex-col space-y-2">
-                          {authMode === 'Passphrase' ? (
-                            <Label htmlFor="passphrase">Passphrase (Hex)</Label>
-                          ) : (
-                            <Label htmlFor="key">Key (Hex)</Label>
-                          )}
-                          <Textarea
-                            id="key"
-                            value={keyText}
-                            onChange={(e) => setKeyText(e.target.value)}
-                            placeholder="Enter your passphrase or key here."
-                          />
-                        </div>
 
-                        <div
-                          className={clsx('flex flex-col space-y-2', {
-                            'pointer-events-none  opacity-0':
-                              authMode === 'Passphrase' || mode === 'ECB',
-                          })}
-                        >
-                          <Label htmlFor="iv">IV (Hex)</Label>
-                          <Textarea
-                            id="iv"
-                            value={ivText}
-                            onChange={(e) => setIvText(e.target.value)}
-                            placeholder="Enter your IV here."
-                          />
-                        </div>
+          <TabsContent
+            value="ed"
+            className="grid h-full items-stretch gap-6 md:grid-cols-[1fr_350px]"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Encrypt & Decrypt</CardTitle>
+                <CardDescription>
+                  Select the algorithm and enter the text to encrypt or decrypt.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <article className="flex flex-col space-y-4">
+                  <div className="grid h-full gap-6 lg:grid-cols-2">
+                    <div className="flex flex-col space-y-4">
+                      <div className="flex flex-1 flex-col space-y-2">
+                        <Label htmlFor="input" className="text-lg">
+                          Input
+                        </Label>
+                        <Textarea
+                          value={inputText}
+                          onChange={(e) => setInputText(e.target.value)}
+                          id="input"
+                          placeholder="Text to encrypt or decrypt"
+                          className="flex-1 lg:min-h-[200px]"
+                        />
                       </div>
-                      <div className="flex flex-col space-y-4">
-                        <div className="flex flex-1 flex-col space-y-2">
-                          <Label htmlFor="output" className="text-lg">
-                            Output
-                          </Label>
-                          <Textarea
-                            value={outputText}
-                            onChange={(e) => setOutputText(e.target.value)}
-                            id="output"
-                            placeholder="Output will be displayed here"
-                            className="flex-1 lg:min-h-[200px]"
-                          />
-                        </div>
+                      <div className="flex flex-col space-y-2">
+                        {authMode === 'Passphrase' ? (
+                          <Label htmlFor="passphrase">Passphrase (Hex)</Label>
+                        ) : (
+                          <Label htmlFor="key">Key (Hex)</Label>
+                        )}
+                        <Textarea
+                          id="key"
+                          value={keyText}
+                          onChange={(e) => setKeyText(e.target.value)}
+                          placeholder="Enter your passphrase or key here."
+                        />
                       </div>
-                    </div>
-                  </article>
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                  {/*                   <Button>Encrypt </Button>
-                  <Button>Decrypt</Button> */}
-                  <p className=" text-xl font-bold text-red-500">
-                    {error_message}
-                  </p>
-                </CardFooter>
-              </Card>
-              <aside className=" w-[350px] flex-col sm:flex md:order-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Settings</CardTitle>
-                    <CardDescription>Modify Selections</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="flex flex-col space-y-1.5">
-                      <Label htmlFor="algorithm">Algorithm</Label>
-                      <Select value="aes">
-                        <SelectTrigger id="algorithm">
-                          <SelectValue placeholder="Select Algorithm" />
-                        </SelectTrigger>
-                        <SelectContent position="popper">
-                          <SelectItem value="aes">AES</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex flex-col space-y-1.5">
-                      <Label htmlFor="algorithm">Mode</Label>
-                      <Select value={mode} onValueChange={(e) => setMode(e)}>
-                        <SelectTrigger id="mode">
-                          <SelectValue placeholder="Select Mode" />
-                        </SelectTrigger>
-                        <SelectContent position="popper">
-                          <SelectItem value="CBC">CBC</SelectItem>
-                          <SelectItem value="CFB">CFB</SelectItem>
-                          <SelectItem value="CTR">CTR</SelectItem>
-                          <SelectItem value="OFB">OFB</SelectItem>
-                          <SelectItem value="ECB">ECB</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex flex-col space-y-1.5">
-                      <Label htmlFor="auth">Encrypt with</Label>
-                      <RadioGroup
-                        id="auth"
-                        defaultValue="Passphrase"
-                        onValueChange={(e) => setAuthMode(e)}
+
+                      <div
+                        className={clsx('flex flex-col space-y-2', {
+                          'pointer-events-none  opacity-0':
+                            authMode === 'Passphrase' || mode === 'ECB',
+                        })}
                       >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="Passphrase" id="option-one" />
-                          <Label htmlFor="option-one">Passphrase</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="Key" id="option-two" />
-                          <Label htmlFor="option-two">Key</Label>
-                        </div>
-                      </RadioGroup>
+                        <Label htmlFor="iv">IV (Hex)</Label>
+                        <Textarea
+                          id="iv"
+                          value={ivText}
+                          onChange={(e) => setIvText(e.target.value)}
+                          placeholder="Enter your IV here."
+                        />
+                      </div>
                     </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Button onClick={handleEncrypt}>Encrypt</Button>
-                    <Button onClick={handleDecrypt}>Decrypt</Button>
-                    <Button variant="destructive" onClick={handleClear}>
-                      Clear
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </aside>
-            </main>
-          </TabsContent>
-          <TabsContent value="gen">
-            <main className="grid h-full items-stretch gap-6 md:grid-cols-[1fr_200px]">
+                    <div className="flex flex-col space-y-4">
+                      <div className="flex flex-1 flex-col space-y-2">
+                        <Label htmlFor="output" className="text-lg">
+                          Output
+                        </Label>
+                        <Textarea
+                          value={outputText}
+                          onChange={(e) => setOutputText(e.target.value)}
+                          id="output"
+                          placeholder="Output will be displayed here"
+                          className="flex-1 lg:min-h-[200px]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                {/*                   <Button>Encrypt </Button>
+                  <Button>Decrypt</Button> */}
+                <p className=" text-xl font-bold text-red-500">
+                  {error_message}
+                </p>
+              </CardFooter>
+            </Card>
+            <aside className=" w-[350px] flex-col sm:flex md:order-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Generate Public/Private Key Pair</CardTitle>
-                  <CardDescription>
-                    Generate a public/private key pair using RSA.
-                  </CardDescription>
+                  <CardTitle>Settings</CardTitle>
+                  <CardDescription>Modify Selections</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <article className="flex flex-col space-y-4">
-                    <div className="grid h-full gap-6 lg:grid-cols-2">
-                      <div className="flex flex-col space-y-4">
-                        <div className="flex flex-1 flex-col space-y-2">
-                          <Label htmlFor="priv-key" className="text-lg">
-                            Private Key
-                          </Label>
-                          <Textarea
-                            value={inputText}
-                            onChange={(e) => setInputText(e.target.value)}
-                            id="priv-key"
-                            placeholder="Your private key will be displayed here"
-                            className="lg:min-h-[400px]"
-                          />
-                        </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="algorithm">Algorithm</Label>
+                    <Select value="aes">
+                      <SelectTrigger id="algorithm">
+                        <SelectValue placeholder="Select Algorithm" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        <SelectItem value="aes">AES</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="algorithm">Mode</Label>
+                    <Select value={mode} onValueChange={(e) => setMode(e)}>
+                      <SelectTrigger id="mode">
+                        <SelectValue placeholder="Select Mode" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        <SelectItem value="CBC">CBC</SelectItem>
+                        <SelectItem value="CFB">CFB</SelectItem>
+                        <SelectItem value="CTR">CTR</SelectItem>
+                        <SelectItem value="OFB">OFB</SelectItem>
+                        <SelectItem value="ECB">ECB</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="auth">Encrypt with</Label>
+                    <RadioGroup
+                      id="auth"
+                      defaultValue="Passphrase"
+                      onValueChange={(e) => setAuthMode(e)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="Passphrase" id="option-one" />
+                        <Label htmlFor="option-one">Passphrase</Label>
                       </div>
-                      <div className="flex flex-col space-y-4">
-                        <div className="flex flex-1 flex-col space-y-2">
-                          <Label htmlFor="pub-key" className="text-lg">
-                            Public Key
-                          </Label>
-                          <Textarea
-                            value={outputText}
-                            onChange={(e) => setOutputText(e.target.value)}
-                            id="pub-key"
-                            placeholder="Your public key will be displayed here"
-                            className=" lg:min-h-[400px]"
-                          />
-                        </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="Key" id="option-two" />
+                        <Label htmlFor="option-two">Key</Label>
                       </div>
-                    </div>
-                  </article>
+                    </RadioGroup>
+                  </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                  {/*                   <Button>Encrypt </Button>
-                  <Button>Decrypt</Button> */}
-                  <p className=" text-xl font-bold text-red-500">
-                    {error_message}
-                  </p>
+                  <Button onClick={handleEncrypt}>Encrypt</Button>
+                  <Button onClick={handleDecrypt}>Decrypt</Button>
+                  <Button variant="destructive" onClick={handleClear}>
+                    Clear
+                  </Button>
                 </CardFooter>
               </Card>
-              <aside className=" w-[350px] flex-col sm:flex md:order-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Settings</CardTitle>
-                    <CardDescription>Modify Selections</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="flex flex-col space-y-1.5">
-                      <Label htmlFor=" algorithm">Algorithm</Label>
-                      <Select value="rsa">
-                        <SelectTrigger id="algorithm">
-                          <SelectValue placeholder="Select Algorithm" />
-                        </SelectTrigger>
-                        <SelectContent position="popper">
-                          <SelectItem value="rsa">RSA</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex flex-col space-y-1.5">
-                      <Label htmlFor="key-size">Key Size</Label>
-                      <Select
-                        onValueChange={(e) => setKeySize(e)}
-                        value={key_size}
-                      >
-                        <SelectTrigger id="key-size">
-                          <SelectValue placeholder="Select Key Size" />
-                        </SelectTrigger>
-                        <SelectContent position="popper">
-                          <SelectItem value="512">512</SelectItem>
-                          <SelectItem value="1024">1024</SelectItem>
-                          <SelectItem value="2048">2048</SelectItem>
-                          <SelectItem value="4096">4096</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Button onClick={handleGenerate}>Generate</Button>
-                    <Button variant="destructive" onClick={handleClear}>
-                      Clear
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </aside>
-            </main>
+            </aside>
           </TabsContent>
 
-          <TabsContent value="sv">
-            <main className="grid h-full items-stretch gap-6 md:grid-cols-[1fr_200px]">
+          <TabsContent
+            value="gen"
+            className="grid h-full items-stretch gap-6 md:grid-cols-[1fr_350px]"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Generate Public/Private Key Pair</CardTitle>
+                <CardDescription>
+                  Generate a public/private key pair using RSA.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <article className="flex flex-col space-y-4">
+                  <div className="grid h-full gap-6 lg:grid-cols-2">
+                    <div className="flex flex-col space-y-4">
+                      <div className="flex flex-1 flex-col space-y-2">
+                        <Label htmlFor="priv-key" className="text-lg">
+                          Private Key
+                        </Label>
+                        <Textarea
+                          value={inputText}
+                          onChange={(e) => setInputText(e.target.value)}
+                          id="priv-key"
+                          placeholder="Your private key will be displayed here"
+                          className="lg:min-h-[400px]"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex flex-col space-y-4">
+                      <div className="flex flex-1 flex-col space-y-2">
+                        <Label htmlFor="pub-key" className="text-lg">
+                          Public Key
+                        </Label>
+                        <Textarea
+                          value={outputText}
+                          onChange={(e) => setOutputText(e.target.value)}
+                          id="pub-key"
+                          placeholder="Your public key will be displayed here"
+                          className=" lg:min-h-[400px]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                {/*                   <Button>Encrypt </Button>
+                  <Button>Decrypt</Button> */}
+                <p className=" text-xl font-bold text-red-500">
+                  {error_message}
+                </p>
+              </CardFooter>
+            </Card>
+            <aside className=" w-[350px] flex-col sm:flex md:order-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Sign & Verify</CardTitle>
-                  <CardDescription>
-                    Sign and verify a message using RSA.
-                  </CardDescription>
+                  <CardTitle>Settings</CardTitle>
+                  <CardDescription>Modify Selections</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <article className="flex flex-col space-y-4">
-                    <div className="grid h-full gap-6 lg:grid-cols-2">
-                      <div className="flex flex-col space-y-4">
-                        <div className="flex flex-1 flex-col space-y-2">
-                          <Label htmlFor="input" className="text-lg">
-                            Input
-                          </Label>
-                          <Textarea
-                            value={inputText}
-                            onChange={(e) => setInputText(e.target.value)}
-                            id="input"
-                            placeholder="Text to sign or verify"
-                            className="flex-1 lg:min-h-[200px]"
-                          />
-                        </div>
-                        <div className="flex flex-col space-y-2">
-                          <Label htmlFor="key">Private Key (Hex)</Label>
-                          <Textarea
-                            id="key"
-                            value={keyText}
-                            onChange={(e) => setKeyText(e.target.value)}
-                            placeholder="Enter your private key here."
-                          />
-                        </div>
-                      </div>
-                      <div className="flex flex-col space-y-4">
-                        <div className="flex flex-1 flex-col space-y-2">
-                          <Label htmlFor="output" className="text-lg">
-                            Output
-                          </Label>
-                          <Textarea
-                            value={outputText}
-                            onChange={(e) => setOutputText(e.target.value)}
-                            id="output"
-                            placeholder="Output will be displayed here"
-                            className="flex-1 lg:min-h-[200px]"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </article>
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor=" algorithm">Algorithm</Label>
+                    <Select value="rsa">
+                      <SelectTrigger id="algorithm">
+                        <SelectValue placeholder="Select Algorithm" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        <SelectItem value="rsa">RSA</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="key-size">Key Size</Label>
+                    <Select
+                      onValueChange={(e) => setKeySize(e)}
+                      value={key_size}
+                    >
+                      <SelectTrigger id="key-size">
+                        <SelectValue placeholder="Select Key Size" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        <SelectItem value="512">512</SelectItem>
+                        <SelectItem value="1024">1024</SelectItem>
+                        <SelectItem value="2048">2048</SelectItem>
+                        <SelectItem value="3072">3072</SelectItem>
+                        <SelectItem value="4096">4096</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                  {/*                   <Button>Encrypt </Button>
-                  <Button>Decrypt</Button> */}
-                  <p className=" text-xl font-bold text-red-500">
-                    {error_message}
-                  </p>
+                  <Button onClick={handleGenerate}>Generate</Button>
+                  <Button variant="destructive" onClick={handleClear}>
+                    Clear
+                  </Button>
                 </CardFooter>
               </Card>
-              <aside className=" w-[350px] flex-col sm:flex md:order-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Settings</CardTitle>
-                    <CardDescription>Modify Selections</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="flex flex-col space-y-1.5">
-                      <Label htmlFor="algorithm">Algorithm</Label>
-                      <Select value="rsa">
-                        <SelectTrigger id="algorithm">
-                          <SelectValue placeholder="Select Algorithm" />
-                        </SelectTrigger>
-                        <SelectContent position="popper">
-                          <SelectItem value="rsa">RSA</SelectItem>
-                        </SelectContent>
-                      </Select>
+            </aside>
+          </TabsContent>
+
+          <TabsContent
+            value="sv"
+            className="grid h-full items-stretch gap-6 md:grid-cols-[1fr_350px]"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Sign & Verify</CardTitle>
+                <CardDescription>
+                  Sign and verify a message using RSA.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <article className="flex flex-col space-y-4">
+                  <div className="grid h-full gap-6 lg:grid-cols-2">
+                    <div className="flex flex-col space-y-4">
+                      <div className="flex flex-1 flex-col space-y-2">
+                        <Label htmlFor="input" className="text-lg">
+                          Input
+                        </Label>
+                        <Textarea
+                          value={inputText}
+                          onChange={(e) => setInputText(e.target.value)}
+                          id="input"
+                          placeholder="Text to sign or verify"
+                          className="flex-1 lg:min-h-[200px]"
+                        />
+                      </div>
+                      <div className="flex flex-col space-y-2">
+                        <Label htmlFor="key">Private Key (Hex)</Label>
+                        <Textarea
+                          id="key"
+                          value={keyText}
+                          onChange={(e) => setKeyText(e.target.value)}
+                          placeholder="Enter your private key here."
+                        />
+                      </div>
                     </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Button>Sign</Button>
-                    <Button>Verify</Button>
-                    <Button variant="destructive" onClick={handleClear}>
-                      Clear
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </aside>
-            </main>
+                    <div className="flex flex-col space-y-4">
+                      <div className="flex flex-1 flex-col space-y-2">
+                        <Label htmlFor="output" className="text-lg">
+                          Output
+                        </Label>
+                        <Textarea
+                          value={outputText}
+                          onChange={(e) => setOutputText(e.target.value)}
+                          id="output"
+                          placeholder="Output will be displayed here"
+                          className="flex-1 lg:min-h-[200px]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                {/*                   <Button>Encrypt </Button>
+                  <Button>Decrypt</Button> */}
+                <p className=" text-xl font-bold text-red-500">
+                  {error_message}
+                </p>
+              </CardFooter>
+            </Card>
+            <aside className=" w-[350px] flex-col sm:flex md:order-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Settings</CardTitle>
+                  <CardDescription>Modify Selections</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="algorithm">Algorithm</Label>
+                    <Select value="rsa">
+                      <SelectTrigger id="algorithm">
+                        <SelectValue placeholder="Select Algorithm" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        <SelectItem value="rsa">RSA</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button>Sign</Button>
+                  <Button>Verify</Button>
+                  <Button variant="destructive" onClick={handleClear}>
+                    Clear
+                  </Button>
+                </CardFooter>
+              </Card>
+            </aside>
           </TabsContent>
         </Tabs>
       </div>
