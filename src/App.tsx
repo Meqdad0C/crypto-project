@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Textarea } from './components/ui/textarea'
 import { Label } from './components/ui/label'
+import { Input } from './components/ui/input'
 import { ModeToggle } from './components/mode-toggle'
 import {
   Select,
@@ -429,7 +430,25 @@ function App() {
                 </p>
               </CardFooter>
             </Card>
-            <aside className=" w-[350px] flex-col sm:flex md:order-2">
+            <aside className=" w-[350px] flex-col gap-2 sm:flex md:order-2">
+              <div className="grid w-full max-w-sm cursor-pointer items-center gap-1.5 rounded-lg border-2 border-dashed p-2 hover:border-gray-500">
+                <Label htmlFor="file" className="text-lg">
+                  Click to select file or start Typing away
+                </Label>
+                <Input
+                  id="file"
+                  type="file"
+                  onChange={(e) => {
+                    const file = e.target.files[0]
+                    const reader = new FileReader()
+                    reader.onload = function (e) {
+                      const text = e.target?.result
+                      setInputText(text as string)
+                    }
+                    reader.readAsText(file)
+                  }}
+                />
+              </div>
               <Card>
                 <CardHeader>
                   <CardTitle>Settings</CardTitle>
@@ -481,8 +500,10 @@ function App() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                  <Button onClick={handleEncrypt}>Encrypt</Button>
-                  <Button onClick={handleDecrypt}>Decrypt</Button>
+                  <div className="flex space-x-2">
+                    <Button onClick={handleEncrypt}>Encrypt</Button>
+                    <Button onClick={handleDecrypt}>Decrypt</Button>
+                  </div>
                   <Button variant="destructive" onClick={handleClear}>
                     Clear
                   </Button>
@@ -673,7 +694,25 @@ function App() {
                 </p>
               </CardFooter>
             </Card>
-            <aside className=" w-[350px] flex-col sm:flex md:order-2">
+            <aside className=" w-[350px] flex-col gap-2 sm:flex md:order-2">
+              <div className="grid w-full max-w-sm cursor-pointer items-center gap-1.5 rounded-lg border-2 border-dashed p-2 hover:border-gray-500">
+                <Label htmlFor="file" className="text-lg">
+                  Click to select file or start Typing away
+                </Label>
+                <Input
+                  id="file"
+                  type="file"
+                  onChange={(e) => {
+                    const file = e.target.files[0]
+                    const reader = new FileReader()
+                    reader.onload = function (e) {
+                      const text = e.target?.result
+                      setKeyText(text as string)
+                    }
+                    reader.readAsText(file)
+                  }}
+                />
+              </div>
               <Card>
                 <CardHeader>
                   <CardTitle>Settings</CardTitle>
