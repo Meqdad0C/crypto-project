@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import { Button } from '@/components/ui/button'
 import { Textarea } from './components/ui/textarea'
 import { Label } from './components/ui/label'
@@ -46,6 +44,8 @@ function App() {
   const [error_message, setErrorMessage] = useState('')
   const [key_size, setKeySize] = useState('512')
   const [rsaMode, setRsaMode] = useState('sv')
+  const [caMode, setCaMode] = useState('s')
+  const [signedText, setSignedText] = useState('')
   let error_message_id: string | number | NodeJS.Timeout | undefined
 
   const handleEncrypt = (e: { preventDefault: () => void }) => {
@@ -148,7 +148,7 @@ function App() {
     function generateKeyPair() {
       return new Promise((resolve, reject) => {
         rsa.generateKeyPair(
-          { bits: parseInt(key_size), workers: 2 },
+          { bits: parseInt(key_size), workers: -1 },
           function (err, keypair) {
             if (err) reject(err)
             resolve(keypair)
@@ -207,7 +207,7 @@ function App() {
 
   const handleVerify = (e: { preventDefault: () => void }) => {
     e.preventDefault()
-    if (!inputText) {
+    if (!outputText) {
       clearTimeout(error_message_id)
       setErrorMessage('Please enter public key.')
       error_message_id = setTimeout(() => {
@@ -329,6 +329,198 @@ function App() {
     }
   }
 
+  const handleSignAndEnrypt = (e: { preventDefault: () => void }) => {
+    e.preventDefault()
+    if (!inputText) {
+      clearTimeout(error_message_id)
+      setErrorMessage('Please enter private key.')
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 3000)
+      return
+    }
+    if (authMode === 'Passphrase' && !keyText) {
+      clearTimeout(error_message_id)
+      setErrorMessage('Please enter passphrase.')
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 3000)
+      return
+    }
+    if (authMode === 'Key') {
+      if (
+        keyText.length !== 32 &&
+        keyText.length !== 48 &&
+        keyText.length !== 64
+      ) {
+        clearTimeout(error_message_id)
+        setErrorMessage(
+          'Key length must be between 16, 24 or 32 bytes (32, 48 or 64 hex characters)',
+        )
+        error_message_id = setTimeout(() => {
+          setErrorMessage('')
+        }, 3000)
+        return
+      }
+    }
+    if (authMode === 'Key') {
+      if (ivText.length !== 32) {
+        clearTimeout(error_message_id)
+        setErrorMessage('IV length must be 16 bytes (32 hex characters)')
+        error_message_id = setTimeout(() => {
+          setErrorMessage('')
+        }, 3000)
+        return
+      }
+    }
+
+    if (!outputText) {
+      clearTimeout(error_message_id)
+      setErrorMessage('Please text to encrypt.')
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 3000)
+      return
+    }
+
+    const privateKey = forge.pki.privateKeyFromPem(inputText)
+    const text_hash = CryptoJS.SHA512(outputText).toString()
+    const md = forge.md.sha1.create()
+    md.update(text_hash, 'utf8')
+    const pss = forge.pss.create({
+      md: forge.md.sha1.create(),
+      mgf: forge.mgf.mgf1.create(forge.md.sha1.create()),
+      saltLength: 20,
+    })
+    const signature = privateKey.sign(md, pss)
+    console.log('signature ', forge.util.encode64(signature))
+
+    const encrypted =
+      authMode === 'Passphrase'
+        ? AES.encrypt(outputText, keyText, {
+            mode: modeToTextMap[mode],
+          })
+        : AES.encrypt(outputText, CryptoJS.enc.Hex.parse(keyText), {
+            iv: CryptoJS.enc.Hex.parse(ivText),
+            mode: modeToTextMap[mode],
+          })
+
+    console.log('encrypted', encrypted.toString())
+
+    const encrypted_signed =
+      encrypted.toString() + '||' + forge.util.encode64(signature)
+    console.log('encrypted_signed', encrypted_signed)
+
+    setSignedText(encrypted_signed)
+  }
+
+  const handleVerifyAndDecrypt = (e: { preventDefault: () => void }) => {
+    e.preventDefault()
+    if (!inputText) {
+      clearTimeout(error_message_id)
+      setErrorMessage('Please enter public key.')
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 3000)
+      return
+    }
+    if (authMode === 'Passphrase' && !keyText) {
+      clearTimeout(error_message_id)
+      setErrorMessage('Please enter passphrase.')
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 3000)
+      return
+    }
+    if (authMode === 'Key') {
+      if (
+        keyText.length !== 32 &&
+        keyText.length !== 48 &&
+        keyText.length !== 64
+      ) {
+        clearTimeout(error_message_id)
+        setErrorMessage(
+          'Key length must be between 16, 24 or 32 bytes (32, 48 or 64 hex characters)',
+        )
+        error_message_id = setTimeout(() => {
+          setErrorMessage('')
+        }, 3000)
+        return
+      }
+    }
+    if (authMode === 'Key') {
+      if (ivText.length !== 32) {
+        clearTimeout(error_message_id)
+        setErrorMessage('IV length must be 16 bytes (32 hex characters)')
+        error_message_id = setTimeout(() => {
+          setErrorMessage('')
+        }, 3000)
+        return
+      }
+    }
+
+    if (!outputText) {
+      clearTimeout(error_message_id)
+      setErrorMessage('Please text to encrypt.')
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 3000)
+      return
+    }
+
+    const publicKey = forge.pki.publicKeyFromPem(inputText)
+    const [encrypted, signature] = outputText.split('||')
+    console.log('encrypted', encrypted)
+    console.log('signature', signature)
+
+    const decrypted =
+      authMode === 'Passphrase'
+        ? AES.decrypt(encrypted, keyText, {
+            mode: modeToTextMap[mode],
+          })
+        : AES.decrypt(encrypted, CryptoJS.enc.Hex.parse(keyText), {
+            iv: CryptoJS.enc.Hex.parse(ivText),
+            mode: modeToTextMap[mode],
+          })
+
+    console.log('decrypted', decrypted.toString(CryptoJS.enc.Utf8))
+    setSignedText(decrypted.toString(CryptoJS.enc.Utf8))
+
+    const text_hash = CryptoJS.SHA512(
+      decrypted.toString(CryptoJS.enc.Utf8),
+    ).toString()
+    const md = forge.md.sha1.create()
+    md.update(text_hash, 'utf8')
+    const pss = forge.pss.create({
+      md: forge.md.sha1.create(),
+      mgf: forge.mgf.mgf1.create(forge.md.sha1.create()),
+      saltLength: 20,
+    })
+    const signature_decoded = forge.util.decode64(signature)
+
+    try {
+      const verified = publicKey.verify(
+        md.digest().bytes(),
+        signature_decoded,
+        pss,
+      )
+      console.log('is verified', verified)
+
+      setErrorMessage(verified ? 'Verified' : 'Invalid Signature')
+      clearTimeout(error_message_id)
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 5000)
+    } catch (err) {
+      console.log(err)
+      setErrorMessage('Invalid Signature')
+      clearTimeout(error_message_id)
+      error_message_id = setTimeout(() => {
+        setErrorMessage('')
+      }, 5000)
+    }
+  }
+
   return (
     <>
       <div className="absolute right-5 top-5">
@@ -338,21 +530,268 @@ function App() {
         CSE451 - Project
       </h1>
       <div className="container h-full py-6">
-        <Tabs defaultValue="ed">
-          <TabsList className="grid w-full grid-cols-4 ">
-            <TabsTrigger value="ed" className="overflow-hidden">
-              Encrypt & Decrypt
+        <Tabs defaultValue="ca">
+          <TabsList className="grid w-full grid-cols-5 ">
+            <TabsTrigger className="overflow-hidden" value="ca">
+              Confidentiality + Authentication
             </TabsTrigger>
             <TabsTrigger className="overflow-hidden" value="gen">
               Generate Public/Private Key Pair
             </TabsTrigger>
             <TabsTrigger className="overflow-hidden" value="sv">
-              Sign & Verify Or Encrypt & Decrypt
+              RSA
+            </TabsTrigger>
+            <TabsTrigger value="ed" className="overflow-hidden">
+              AES
             </TabsTrigger>
             <TabsTrigger className="overflow-hidden" value="sha">
               SHA512
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent
+            value="ca"
+            className="grid h-full items-stretch gap-6 md:grid-cols-[1fr_350px]"
+          >
+            <Card className="flex flex-col space-y-4">
+              <CardHeader>
+                <CardTitle>Confidentiality + Authentication</CardTitle>
+                <CardDescription>Enter text or select file.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <article className="flex flex-col space-y-4">
+                  <div className="grid h-full gap-6 lg:grid-cols-2">
+                    <div className="flex flex-col space-y-4">
+                      <div className="flex flex-1 flex-col space-y-2">
+                        <Label htmlFor="input" className="text-lg">
+                          {caMode === 's' ? 'Private Key' : 'Public key'} (PEM)
+                        </Label>
+                        <Textarea
+                          value={inputText}
+                          onChange={(e) => setInputText(e.target.value)}
+                          id="input"
+                          placeholder="Genereate a key pair and enter your key here. drag and drop is also supported."
+                          className="flex-1 lg:min-h-[200px]"
+                          onDrop={(e) => {
+                            e.preventDefault()
+                            const file = e.dataTransfer.files[0]
+                            const reader = new FileReader()
+                            reader.onload = (event) => {
+                              const text = event.target?.result
+                              setInputText(text as string)
+                            }
+                            reader.readAsText(file)
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault()
+                          }}
+                        />
+                      </div>
+                      <div className="flex flex-col space-y-2">
+                        {authMode === 'Passphrase' ? (
+                          <Label htmlFor="passphrase">Passphrase</Label>
+                        ) : (
+                          <Label htmlFor="key">Key (Hex)</Label>
+                        )}
+                        <Textarea
+                          id="key"
+                          value={keyText}
+                          onChange={(e) => setKeyText(e.target.value)}
+                          placeholder="Enter your passphrase or key here or drag and drop."
+                          onDrop={(e) => {
+                            e.preventDefault()
+                            const file = e.dataTransfer.files[0]
+                            const reader = new FileReader()
+                            reader.onload = (event) => {
+                              const text = event.target?.result
+                              setKeyText(text as string)
+                            }
+                            reader.readAsText(file)
+                          }}
+                        />
+                      </div>
+
+                      <div
+                        className={clsx('flex flex-col space-y-2', {
+                          'pointer-events-none  opacity-0':
+                            authMode === 'Passphrase' || mode === 'ECB',
+                        })}
+                      >
+                        <Label htmlFor="iv">IV (Hex)</Label>
+                        <Textarea
+                          id="iv"
+                          value={ivText}
+                          onChange={(e) => setIvText(e.target.value)}
+                          placeholder="Enter your IV here or drag and drop."
+                          onDrop={(e) => {
+                            e.preventDefault()
+                            const file = e.dataTransfer.files[0]
+                            const reader = new FileReader()
+                            reader.onload = (event) => {
+                              const text = event.target?.result
+                              setIvText(text as string)
+                            }
+                            reader.readAsText(file)
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex flex-col space-y-4">
+                      <div className="flex flex-1 flex-col space-y-2">
+                        <Label htmlFor="output" className="text-lg">
+                          Input Text (UTF-8)
+                        </Label>
+                        <Textarea
+                          value={outputText}
+                          onChange={(e) => setOutputText(e.target.value)}
+                          id="output"
+                          placeholder="Select File or drag and drop."
+                          className="flex-1 lg:min-h-[200px]"
+                          onDrop={(e) => {
+                            e.preventDefault()
+                            const file = e.dataTransfer.files[0]
+                            const reader = new FileReader()
+                            reader.onload = (event) => {
+                              const text = event.target?.result
+                              setOutputText(text as string)
+                            }
+                            reader.readAsText(file)
+                          }}
+                        />
+                        <Label htmlFor="signed" className="text-lg">
+                          {caMode === 's'
+                            ? 'Encrypted and Signed'
+                            : 'Decrypted'}{' '}
+                          Text
+                        </Label>
+                        <Textarea
+                          value={signedText}
+                          onChange={(e) => setSignedText(e.target.value)}
+                          id="signed"
+                          placeholder="Output will be displayed here"
+                          className="flex-1 lg:min-h-[200px]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                {/*                   <Button>Encrypt </Button>
+                  <Button>Decrypt</Button> */}
+                <p
+                  className={clsx('text-xl font-bold', {
+                    'text-red-500': error_message.startsWith('I'),
+                    'text-green-500': error_message.startsWith('V'),
+                  })}
+                >
+                  {error_message}
+                </p>
+              </CardFooter>
+            </Card>
+            <aside className=" w-[350px] flex-col gap-2 sm:flex md:order-2">
+              <div className="grid w-full max-w-sm cursor-pointer items-center gap-1.5 rounded-lg border-2 border-dashed p-2 hover:border-gray-500">
+                <Label htmlFor="file" className="text-lg">
+                  Click to select file or start Typing away
+                </Label>
+                <Input
+                  id="file"
+                  type="file"
+                  onChange={(e) => {
+                    const file = e.target.files[0]
+                    const reader = new FileReader()
+                    reader.onload = function (e) {
+                      const text = e.target?.result
+                      setOutputText(text as string)
+                    }
+                    reader.readAsText(file)
+                  }}
+                />
+              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Settings</CardTitle>
+                  <CardDescription>Modify Selections</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="ca">
+                      Select Sign&Encrypt or Decrypt&Verify
+                    </Label>
+                    <Select value={caMode} onValueChange={(e) => setCaMode(e)}>
+                      <SelectTrigger id="ca">
+                        <SelectValue placeholder="Select Mode" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        <SelectItem value="s">Sign&Encrypt</SelectItem>
+                        <SelectItem value="v">Decrypt&Verify</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="algorithm">Algorithm</Label>
+                    <Select value="aes">
+                      <SelectTrigger id="algorithm">
+                        <SelectValue placeholder="Select Algorithm" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        <SelectItem value="aes">AES</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="algorithm">Mode</Label>
+                    <Select value={mode} onValueChange={(e) => setMode(e)}>
+                      <SelectTrigger id="mode">
+                        <SelectValue placeholder="Select Mode" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        <SelectItem value="CBC">CBC</SelectItem>
+                        <SelectItem value="CFB">CFB</SelectItem>
+                        <SelectItem value="CTR">CTR</SelectItem>
+                        <SelectItem value="OFB">OFB</SelectItem>
+                        <SelectItem value="ECB">ECB</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="auth">Use</Label>
+                    <RadioGroup
+                      id="auth"
+                      defaultValue={authMode}
+                      onValueChange={(e) => setAuthMode(e)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="Passphrase" id="option-one" />
+                        <Label htmlFor="option-one">Passphrase</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="Key" id="option-two" />
+                        <Label htmlFor="option-two">Key & IV</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <div className="flex space-x-2">
+                    {caMode === 's' ? (
+                      <Button onClick={handleSignAndEnrypt}>
+                        Sign and Encrypt
+                      </Button>
+                    ) : (
+                      <Button onClick={handleVerifyAndDecrypt}>
+                        Verify and Decrypt
+                      </Button>
+                    )}
+                  </div>
+                  <Button variant="destructive" onClick={handleClear}>
+                    Clear
+                  </Button>
+                </CardFooter>
+              </Card>
+            </aside>
+          </TabsContent>
 
           <TabsContent
             value="ed"
