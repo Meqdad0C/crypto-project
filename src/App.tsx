@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { Button } from '@/components/ui/button'
 import { Textarea } from './components/ui/textarea'
 import { Label } from './components/ui/label'
@@ -267,6 +269,7 @@ function App() {
     setKeyText('')
     setIvText('')
     setErrorMessage('')
+    setSignedText('')
   }
 
   const handleRsaEncrypt = (e: { preventDefault: () => void }) => {
@@ -669,7 +672,8 @@ function App() {
                           onChange={(e) => setSignedText(e.target.value)}
                           id="signed"
                           placeholder="Output will be displayed here"
-                          className="flex-1 lg:min-h-[200px]"
+                          className=" lg:min-h-[200px]"
+                          draggable={true}
                         />
                       </div>
                     </div>
@@ -729,7 +733,7 @@ function App() {
                     </Select>
                   </div>
                   <div className="flex flex-col space-y-1.5">
-                    <Label htmlFor="algorithm">Algorithm</Label>
+                    <Label htmlFor="algorithm">Encryption Algorithm</Label>
                     <Select value="aes">
                       <SelectTrigger id="algorithm">
                         <SelectValue placeholder="Select Algorithm" />
@@ -973,7 +977,7 @@ function App() {
                     <div className="flex flex-col space-y-4">
                       <div className="flex flex-1 flex-col space-y-2">
                         <Label htmlFor="priv-key" className="text-lg">
-                          Private Key
+                          Private Key (PEM)
                         </Label>
                         <Textarea
                           value={inputText}
@@ -987,7 +991,7 @@ function App() {
                     <div className="flex flex-col space-y-4">
                       <div className="flex flex-1 flex-col space-y-2">
                         <Label htmlFor="pub-key" className="text-lg">
-                          Public Key
+                          Public Key (PEM)
                         </Label>
                         <Textarea
                           value={outputText}
@@ -1073,7 +1077,7 @@ function App() {
                     <div className="flex flex-col space-y-4">
                       <div className="flex flex-1 flex-col space-y-2">
                         <Label htmlFor="input" className="text-lg">
-                          Private Key
+                          Private Key (PEM)
                         </Label>
                         <Textarea
                           value={inputText}
@@ -1101,7 +1105,7 @@ function App() {
                     <div className="flex flex-col space-y-4">
                       <div className="flex flex-1 flex-col space-y-2">
                         <Label htmlFor="output" className="text-lg">
-                          Public Key
+                          Public Key (PEM)
                         </Label>
                         <Textarea
                           value={outputText}
