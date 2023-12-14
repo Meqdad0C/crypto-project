@@ -27,6 +27,7 @@ import CryptoJS from 'crypto-js'
 import forge from 'node-forge'
 import { useState } from 'react'
 import clsx from 'clsx'
+import { SavedKeysViewer } from './components/code-viewer'
 
 const modeToTextMap = {
   CBC: CryptoJS.mode.CBC,
@@ -37,6 +38,8 @@ const modeToTextMap = {
 }
 
 function App() {
+  const [isOpen, setIsOpen] = useState(false)
+
   const [inputText, setInputText] = useState('')
   const [outputText, setOutputText] = useState('')
   const [keyText, setKeyText] = useState('')
@@ -48,6 +51,7 @@ function App() {
   const [rsaMode, setRsaMode] = useState('sv')
   const [caMode, setCaMode] = useState('s')
   const [signedText, setSignedText] = useState('')
+  const [savedKeyPairs, setSavedKeyPairs] = useState([])
   let error_message_id: string | number | NodeJS.Timeout | undefined
 
   const handleEncrypt = (e: { preventDefault: () => void }) => {
@@ -712,6 +716,12 @@ function App() {
                   }}
                 />
               </div>
+              <div className="grid w-full max-w-sm cursor-pointer items-center gap-1.5 rounded-lg border-2 border-dashed p-2 hover:border-gray-500">
+                <Label htmlFor="modal" className="text-lg">
+                  Click to select Saved Key Pair or generate a new one to save
+                </Label>
+                <SavedKeysViewer savedKeyPairs={savedKeyPairs} />
+              </div>
               <Card>
                 <CardHeader>
                   <CardTitle>Settings</CardTitle>
@@ -983,8 +993,18 @@ function App() {
                           value={inputText}
                           onChange={(e) => setInputText(e.target.value)}
                           id="priv-key"
-                          placeholder="Your private key will be displayed here"
+                          placeholder="Your private key will be displayed here or drag and drop."
                           className="lg:min-h-[400px]"
+                          onDrag={(e) => {
+                            e.preventDefault()
+                            const file = e.dataTransfer.files[0]
+                            const reader = new FileReader()
+                            reader.onload = (event) => {
+                              const text = event.target?.result
+                              setInputText(text as string)
+                            }
+                            reader.readAsText(file)
+                          }}
                         />
                       </div>
                     </div>
@@ -997,8 +1017,23 @@ function App() {
                           value={outputText}
                           onChange={(e) => setOutputText(e.target.value)}
                           id="pub-key"
-                          placeholder="Your public key will be displayed here"
+                          placeholder="Your public key will be displayed here or drag and drop."
                           className=" lg:min-h-[400px]"
+                          onDrag={(e) => {
+                            e.preventDefault()
+                            const file = e.dataTransfer.files[0]
+                            const reader = new FileReader()
+                            reader.onload = (event) => {
+                              const text = event.target?.result
+                              setOutputText(text as string)
+                            }
+                            reader.readAsText(file)
+                          }}
+                          onDragEnd={
+                            (e) => {
+                              e.preventDefault()
+                            } /* required to prevent default behavior */
+                          }
                         />
                       </div>
                     </div>
@@ -1008,7 +1043,14 @@ function App() {
               <CardFooter className="flex justify-between">
                 {/*                   <Button>Encrypt </Button>
                   <Button>Decrypt</Button> */}
-                <p className=" text-xl font-bold text-red-500">
+                <p
+                  className={clsx(
+                    'text-xl font-bold',
+                    error_message.startsWith('S')
+                      ? 'text-green-500'
+                      : 'text-red-500',
+                  )}
+                >
                   {error_message}
                 </p>
               </CardFooter>
@@ -1051,7 +1093,26 @@ function App() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                  <Button onClick={handleGenerate}>Generate</Button>
+                  <div className="flex space-x-2">
+                    <Button onClick={handleGenerate}>Generate</Button>
+                    <Button
+                      onClick={() => {
+                        if (inputText && outputText) {
+                          setSavedKeyPairs([
+                            ...savedKeyPairs,
+                            { private: inputText, public: outputText },
+                          ])
+                          clearTimeout(error_message_id)
+                          setErrorMessage('Saved')
+                          error_message_id = setTimeout(() => {
+                            setErrorMessage('')
+                          }, 3000)
+                        }
+                      }}
+                    >
+                      Save
+                    </Button>
+                  </div>
                   <Button variant="destructive" onClick={handleClear}>
                     Clear
                   </Button>

@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -6,80 +6,79 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from '@/components/ui/dialog'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
+import { useToast } from '@/components/ui/use-toast'
+export function SavedKeysViewer({ savedKeyPairs }) {
+  console.log(savedKeyPairs)
+  const { toast } = useToast()
 
-export function CodeViewer() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="secondary">View code</Button>
+        <Button>View Keys</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
-          <DialogTitle>View code</DialogTitle>
+          <DialogTitle>Saved Keys</DialogTitle>
           <DialogDescription>
-            You can use the following code to start integrating your current
-            prompt and settings into your application.
+            You can use the following keys to start. You can also create yours.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">
-          <div className="rounded-md bg-black p-6">
-            <pre>
-              <code className="grid gap-1 text-sm text-muted-foreground [&_span]:h-4">
-                <span>
-                  <span className="text-sky-300">import</span> os
-                </span>
-                <span>
-                  <span className="text-sky-300">import</span> openai
-                </span>
-                <span />
-                <span>
-                  openai.api_key = os.getenv(
-                  <span className="text-green-300">
-                    &quot;OPENAI_API_KEY&quot;
-                  </span>
-                  )
-                </span>
-                <span />
-                <span>response = openai.Completion.create(</span>
-                <span>
-                  {" "}
-                  model=
-                  <span className="text-green-300">&quot;davinci&quot;</span>,
-                </span>
-                <span>
-                  {" "}
-                  prompt=<span className="text-amber-300">&quot;&quot;</span>,
-                </span>
-                <span>
-                  {" "}
-                  temperature=<span className="text-amber-300">0.9</span>,
-                </span>
-                <span>
-                  {" "}
-                  max_tokens=<span className="text-amber-300">5</span>,
-                </span>
-                <span>
-                  {" "}
-                  top_p=<span className="text-amber-300">1</span>,
-                </span>
-                <span>
-                  {" "}
-                  frequency_penalty=<span className="text-amber-300">0</span>,
-                </span>
-                <span>
-                  {" "}
-                  presence_penalty=<span className="text-green-300">0</span>,
-                </span>
-                <span>)</span>
-              </code>
-            </pre>
-          </div>
+          <ScrollArea className="h-72  rounded-md border">
+            {savedKeyPairs.map((keyPair, index) => (
+              <div key={index}>
+                <p className="p-2 text-lg font-medium text-gray-900">
+                  key number {index}
+                </p>
+                <div className="flex flex-col  gap-4 rounded-md bg-gray-100 p-2">
+                  <div className="flex flex-col items-center justify-between gap-4">
+                    <p className="text-sm font-medium text-gray-900">
+                      Public Key
+                    </p>
+                    <p className="text-sm text-gray-500">{keyPair.public}</p>
+                    <Button
+                      className="px-2 py-1 text-sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText(keyPair.public)
+                        toast({
+                          title: 'Public Key Copied',
+                        })
+                      }}
+                    >
+                      Copy Public Key {index}
+                    </Button>
+                    <Separator className="my-2" />
+
+                    <div className="flex flex-col items-center justify-between gap-4">
+                      <p className="text-sm font-medium text-gray-900">
+                        Private Key
+                      </p>
+                      <p className="text-sm text-gray-500">{keyPair.private}</p>
+                      <Button
+                        className="px-2 py-1 text-sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(keyPair.private)
+                          toast({
+                            title: 'Private Key Copied',
+                          })
+                        }}
+                      >
+                        Copy Private Key {index}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <Separator className="my-2" />
+              </div>
+            ))}
+          </ScrollArea>
+
           <div>
             <p className="text-sm text-muted-foreground">
-              Your API Key can be found here. You should use environment
-              variables or a secret management tool to expose your key to your
-              applications.
+              Your Keys will be saved in your browser. You can use them later.
             </p>
           </div>
         </div>
